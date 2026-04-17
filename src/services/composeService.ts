@@ -177,19 +177,19 @@ export async function composeCarOnLocation(input: {
     .png()
     .toBuffer();
 
-  const perspectiveCar = await sharp(cleanedCar)
-    .affine(
-      [
-        [1, -0.04],
-        [0, 0.95],
-      ],
-      {
-        background: { r: 0, g: 0, b: 0, alpha: 0 },
-        interpolate: "bilinear",
-      }
-    )
-    .png()
-    .toBuffer();
+ const perspectiveCar = await sharp(cleanedCar)
+  .affine(
+    [
+      [1, -0.04],
+      [0, 0.95],
+    ],
+    {
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+      interpolator: "bilinear",
+    }
+  )
+  .png()
+  .toBuffer();
 
   const placedMeta = await sharp(perspectiveCar).metadata();
   const carPlacedWidth = placedMeta.width || 640;
