@@ -76,29 +76,17 @@ function addGroundContactShadowSvg(
     <svg width="${sceneWidth}" height="${sceneHeight}" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <filter id="blur1" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="4" />
-        </filter>
-        <filter id="blur2" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="2" />
+          <feGaussianBlur stdDeviation="1.2" />
         </filter>
       </defs>
 
       <ellipse
         cx="${cx}"
         cy="${cy}"
-        rx="${Math.round(w * 0.22)}"
-        ry="${Math.round(h * 0.12)}"
-        fill="rgba(0,0,0,0.22)"
+        rx="${Math.round(w * 0.085)}"
+        ry="${Math.round(h * 0.032)}"
+        fill="rgba(0,0,0,0.48)"
         filter="url(#blur1)"
-      />
-
-      <ellipse
-        cx="${cx}"
-        cy="${cy + 2}"
-        rx="${Math.round(w * 0.12)}"
-        ry="${Math.round(h * 0.07)}"
-        fill="rgba(0,0,0,0.28)"
-        filter="url(#blur2)"
       />
     </svg>
   `;
@@ -145,8 +133,8 @@ export async function composeCarOnLocation(input: {
 
   const preparedCar = sharp(carBuffer)
     .resize({
-      width: 640,
-      height: 390,
+      width: 610,
+      height: 370,
       fit: "inside",
       withoutEnlargement: true,
     })
@@ -196,13 +184,13 @@ export async function composeCarOnLocation(input: {
   const carPlacedHeight = placedMeta.height || 390;
 
   const left = Math.round((sceneWidth - carPlacedWidth) / 2);
-  const top = Math.round(sceneHeight - carPlacedHeight - 72);
+const top = Math.round(sceneHeight - carPlacedHeight - 18);
 
   const shadow = addGroundContactShadowSvg(
     sceneWidth,
     sceneHeight,
     Math.round(sceneWidth / 2),
-    top + carPlacedHeight - 4,
+    top + carPlacedHeight + 1,
     carPlacedWidth,
     Math.max(18, Math.round(carPlacedHeight * 0.08))
   );
