@@ -6,7 +6,7 @@ import { getTask, saveTask, updateTask } from "../services/taskStore";
 import { resolveImageInput } from "../services/imageResolver";
 import { startVideoGeneration, checkVideoOperation } from "../services/veoService";
 import { startDeapiGeneration, checkDeapiGeneration } from "../services/deapiService";
-import { composeCarOnLocation } from "../services/composeService";
+import { composeCarOnLocation, decodeOptionalBase64 } from "../services/composeService";
 
 const router = Router();
 
@@ -43,19 +43,27 @@ router.post("/generate-video", async (req, res) => {
     });
 
     if (provider === "deapi") {
-      if (!body.imageUrl) {
+      let startResult;
+
+      const carImageBuffer = decodeOptionalBase64(body.imageBase64);
+      const locationImageBuffer = decodeOptionalBase64(body.locationImageBase64);
+
+      const hasLocationSource = !!locationImageBuffer || !!body.locationImageUrl;
+      const hasCarSource = !!carImageBuffer || !!body.imageUrl;
+
+      if (!hasCarSource) {
         return res.status(400).json({
           ok: false,
-          error: "imageUrl is required for deapi provider",
+          error: "imageBase64 or imageUrl is required for deapi provider",
         });
       }
 
-      let startResult;
-
-      if (body.locationImageUrl) {
+      if (hasLocationSource) {
         const composed = await composeCarOnLocation({
-          carImageUrl: body.imageUrl,
-          locationImageUrl: body.locationImageUrl,
+          carImageBuffer,
+          locationImageBuffer,
+          carImageUrl: carImageBuffer ? undefined : body.imageUrl,
+          locationImageUrl: locationImageBuffer ? undefined : body.locationImageUrl,
         });
 
         startResult = await startDeapiGeneration({
@@ -67,7 +75,9 @@ router.post("/generate-video", async (req, res) => {
       } else {
         startResult = await startDeapiGeneration({
           prompt: body.prompt,
-          imageUrl: body.imageUrl,
+          imageBuffer: carImageBuffer,
+          imageUrl: carImageBuffer ? undefined : body.imageUrl,
+          mimeType: body.mimeType,
           durationSeconds: duration,
         });
       }

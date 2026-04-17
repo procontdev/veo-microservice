@@ -4,6 +4,8 @@ export type GenerateVideoRequest = {
   mimeType?: string;
   imageBase64?: string;
   imageUrl?: string;
+  locationImageBase64?: string;
+  locationImageMimeType?: string;
   locationImageUrl?: string;
   prompt: string;
   durationSeconds?: 4 | 6 | 8;
