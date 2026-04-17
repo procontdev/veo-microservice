@@ -6,6 +6,7 @@ import { getTask, saveTask, updateTask } from "../services/taskStore";
 import { resolveImageInput } from "../services/imageResolver";
 import { startVideoGeneration, checkVideoOperation } from "../services/veoService";
 import { startDeapiGeneration, checkDeapiGeneration } from "../services/deapiService";
+import { composeCarOnLocation } from "../services/composeService";
 
 const router = Router();
 
@@ -49,11 +50,27 @@ router.post("/generate-video", async (req, res) => {
         });
       }
 
-      const startResult = await startDeapiGeneration({
-        prompt: body.prompt,
-        imageUrl: body.imageUrl,
-        durationSeconds: duration,
-      });
+      let startResult;
+
+      if (body.locationImageUrl) {
+        const composed = await composeCarOnLocation({
+          carImageUrl: body.imageUrl,
+          locationImageUrl: body.locationImageUrl,
+        });
+
+        startResult = await startDeapiGeneration({
+          prompt: body.prompt,
+          imageBuffer: composed.imageBuffer,
+          mimeType: composed.mimeType,
+          durationSeconds: duration,
+        });
+      } else {
+        startResult = await startDeapiGeneration({
+          prompt: body.prompt,
+          imageUrl: body.imageUrl,
+          durationSeconds: duration,
+        });
+      }
 
       updateTask(taskId, {
         status: "running",

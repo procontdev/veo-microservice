@@ -1,6 +1,8 @@
 type StartDeapiInput = {
   prompt: string;
-  imageUrl: string;
+  imageUrl?: string;
+  imageBuffer?: Buffer;
+  mimeType?: string;
   durationSeconds?: number;
 };
 
@@ -27,7 +29,7 @@ async function fetchImageAsBlob(imageUrl: string): Promise<Blob> {
   const contentType = response.headers.get("content-type") || "image/jpeg";
   const arrayBuffer = await response.arrayBuffer();
 
-  return new Blob([arrayBuffer], { type: contentType });
+  return new Blob([new Uint8Array(arrayBuffer)], { type: contentType });
 }
 
 function normalizeDurationSeconds(durationSeconds?: number): number {
@@ -50,7 +52,17 @@ export async function startDeapiGeneration(input: StartDeapiInput): Promise<Star
     throw new Error("DEAPI_API_KEY is not configured");
   }
 
-  const imageBlob = await fetchImageAsBlob(input.imageUrl);
+  let imageBlob: Blob;
+
+  if (input.imageBuffer) {
+    imageBlob = new Blob([new Uint8Array(input.imageBuffer)], {
+      type: input.mimeType || "image/jpeg",
+    });
+  } else if (input.imageUrl) {
+    imageBlob = await fetchImageAsBlob(input.imageUrl);
+  } else {
+    throw new Error("imageBuffer or imageUrl is required for deAPI generation");
+  }
 
   const durationSeconds = normalizeDurationSeconds(input.durationSeconds);
   const fps = 30;

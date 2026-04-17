@@ -4,6 +4,7 @@ export type GenerateVideoRequest = {
   mimeType?: string;
   imageBase64?: string;
   imageUrl?: string;
+  locationImageUrl?: string;
   prompt: string;
   durationSeconds?: 4 | 6 | 8;
   provider?: "google" | "deapi";
