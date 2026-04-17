@@ -1,10 +1,10 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import healthRouter from "./routes/health";
 import videoRouter from "./routes/video";
-
-dotenv.config();
 
 const app = express();
 

@@ -6,6 +6,7 @@ export type GenerateVideoRequest = {
   imageUrl?: string;
   prompt: string;
   durationSeconds?: 4 | 6 | 8;
+  provider?: "google" | "deapi";
 };
 
 export type TaskStatus = "queued" | "running" | "succeeded" | "failed";
@@ -13,8 +14,11 @@ export type TaskStatus = "queued" | "running" | "succeeded" | "failed";
 export type TaskRecord = {
   taskId: string;
   jobId: string;
+  provider?: "google" | "deapi";
   status: TaskStatus;
   operationName?: string;
+  providerRequestId?: string;
+  resultUrl?: string;
   videoFileName?: string;
   videoMimeType?: string;
   error?: string;

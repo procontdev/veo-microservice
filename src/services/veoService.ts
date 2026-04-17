@@ -1,5 +1,5 @@
-import { GoogleGenAI } from "@google/genai";
 import crypto from "node:crypto";
+import { GoogleGenAI } from "@google/genai";
 
 type StartVideoInput = {
   prompt: string;
@@ -20,12 +20,17 @@ type CheckVideoResult =
       videoMimeType: string;
     };
 
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-});
-
-// Cambia a false para activar Google real.
 const USE_MOCK = false;
+
+function getAiClient(): GoogleGenAI {
+  const apiKey = process.env.GEMINI_API_KEY;
+
+  if (!apiKey) {
+    throw new Error("GEMINI_API_KEY is not configured");
+  }
+
+  return new GoogleGenAI({ apiKey });
+}
 
 export async function startVideoGeneration(input: StartVideoInput): Promise<StartVideoResult> {
   if (USE_MOCK) {
@@ -34,9 +39,7 @@ export async function startVideoGeneration(input: StartVideoInput): Promise<Star
     };
   }
 
-  if (!process.env.GEMINI_API_KEY) {
-    throw new Error("GEMINI_API_KEY is not configured");
-  }
+  const ai = getAiClient();
 
   const operation = await ai.models.generateVideos({
     model: "veo-3.1-lite-generate-preview",
@@ -111,7 +114,6 @@ export async function checkVideoOperation(operationName: string): Promise<CheckV
     throw new Error("Operation completed but no generated video URI was returned");
   }
 
-  // Descargamos el video directamente con la API key
   const downloadResponse = await fetch(video.uri, {
     method: "GET",
     headers: {
