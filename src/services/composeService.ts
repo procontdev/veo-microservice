@@ -46,7 +46,6 @@ function applyWhiteToTransparentWithSoftEdges(
     const r = out[i];
     const g = out[i + 1];
     const b = out[i + 2];
-
     const avg = (r + g + b) / 3;
 
     let alpha = 255;
@@ -65,7 +64,7 @@ function applyWhiteToTransparentWithSoftEdges(
   return out;
 }
 
-function addGroundShadowSvg(
+function addGroundContactShadowSvg(
   sceneWidth: number,
   sceneHeight: number,
   cx: number,
@@ -77,28 +76,28 @@ function addGroundShadowSvg(
     <svg width="${sceneWidth}" height="${sceneHeight}" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <filter id="blur1" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="8" />
+          <feGaussianBlur stdDeviation="4" />
         </filter>
         <filter id="blur2" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="3" />
+          <feGaussianBlur stdDeviation="2" />
         </filter>
       </defs>
 
       <ellipse
         cx="${cx}"
         cy="${cy}"
-        rx="${Math.round(w * 0.42)}"
-        ry="${Math.round(h * 0.32)}"
-        fill="rgba(0,0,0,0.18)"
+        rx="${Math.round(w * 0.22)}"
+        ry="${Math.round(h * 0.12)}"
+        fill="rgba(0,0,0,0.22)"
         filter="url(#blur1)"
       />
 
       <ellipse
         cx="${cx}"
-        cy="${cy + 4}"
-        rx="${Math.round(w * 0.22)}"
-        ry="${Math.round(h * 0.14)}"
-        fill="rgba(0,0,0,0.24)"
+        cy="${cy + 2}"
+        rx="${Math.round(w * 0.12)}"
+        ry="${Math.round(h * 0.07)}"
+        fill="rgba(0,0,0,0.28)"
         filter="url(#blur2)"
       />
     </svg>
@@ -108,6 +107,11 @@ function addGroundShadowSvg(
 
 function base64ToBuffer(base64: string): Buffer {
   return Buffer.from(base64, "base64");
+}
+
+export function decodeOptionalBase64(base64?: string): Buffer | undefined {
+  if (!base64) return undefined;
+  return base64ToBuffer(base64);
 }
 
 export async function composeCarOnLocation(input: {
@@ -141,14 +145,14 @@ export async function composeCarOnLocation(input: {
 
   const preparedCar = sharp(carBuffer)
     .resize({
-      width: 660,
-      height: 400,
+      width: 640,
+      height: 390,
       fit: "inside",
       withoutEnlargement: true,
     })
     .modulate({
-      brightness: 0.93,
-      saturation: 0.9,
+      brightness: 0.92,
+      saturation: 0.90,
     });
 
   const carMeta = await preparedCar
@@ -169,14 +173,14 @@ export async function composeCarOnLocation(input: {
       channels: 4,
     },
   })
-    .blur(0.4)
+    .blur(0.35)
     .png()
     .toBuffer();
 
   const perspectiveCar = await sharp(cleanedCar)
     .affine(
       [
-        [1, -0.05],
+        [1, -0.04],
         [0, 0.95],
       ],
       {
@@ -188,19 +192,19 @@ export async function composeCarOnLocation(input: {
     .toBuffer();
 
   const placedMeta = await sharp(perspectiveCar).metadata();
-  const carPlacedWidth = placedMeta.width || 660;
-  const carPlacedHeight = placedMeta.height || 400;
+  const carPlacedWidth = placedMeta.width || 640;
+  const carPlacedHeight = placedMeta.height || 390;
 
   const left = Math.round((sceneWidth - carPlacedWidth) / 2);
-  const top = Math.round(sceneHeight - carPlacedHeight - 118);
+  const top = Math.round(sceneHeight - carPlacedHeight - 72);
 
-  const shadow = addGroundShadowSvg(
+  const shadow = addGroundContactShadowSvg(
     sceneWidth,
     sceneHeight,
     Math.round(sceneWidth / 2),
-    top + carPlacedHeight - 6,
+    top + carPlacedHeight - 4,
     carPlacedWidth,
-    Math.max(20, Math.round(carPlacedHeight * 0.1))
+    Math.max(18, Math.round(carPlacedHeight * 0.08))
   );
 
   const composedBuffer = await sharp(backgroundBuffer)
@@ -215,9 +219,4 @@ export async function composeCarOnLocation(input: {
     imageBuffer: composedBuffer,
     mimeType: "image/jpeg",
   };
-}
-
-export function decodeOptionalBase64(base64?: string): Buffer | undefined {
-  if (!base64) return undefined;
-  return base64ToBuffer(base64);
 }
