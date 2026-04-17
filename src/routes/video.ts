@@ -52,6 +52,7 @@ router.post("/generate-video", async (req, res) => {
       const startResult = await startDeapiGeneration({
         prompt: body.prompt,
         imageUrl: body.imageUrl,
+        durationSeconds: duration,
       });
 
       updateTask(taskId, {

@@ -1,6 +1,7 @@
 type StartDeapiInput = {
   prompt: string;
   imageUrl: string;
+  durationSeconds?: number;
 };
 
 type StartDeapiResult = {
@@ -29,6 +30,20 @@ async function fetchImageAsBlob(imageUrl: string): Promise<Blob> {
   return new Blob([arrayBuffer], { type: contentType });
 }
 
+function normalizeDurationSeconds(durationSeconds?: number): number {
+  if (durationSeconds === 4 || durationSeconds === 6 || durationSeconds === 8) {
+    return durationSeconds;
+  }
+
+  if (!durationSeconds || Number.isNaN(durationSeconds)) {
+    return 4;
+  }
+
+  if (durationSeconds <= 4) return 4;
+  if (durationSeconds <= 6) return 6;
+  return 8;
+}
+
 export async function startDeapiGeneration(input: StartDeapiInput): Promise<StartDeapiResult> {
   const apiKey = process.env.DEAPI_API_KEY;
   if (!apiKey) {
@@ -37,6 +52,10 @@ export async function startDeapiGeneration(input: StartDeapiInput): Promise<Star
 
   const imageBlob = await fetchImageAsBlob(input.imageUrl);
 
+  const durationSeconds = normalizeDurationSeconds(input.durationSeconds);
+  const fps = 30;
+  const frames = fps * durationSeconds;
+
   const form = new FormData();
   form.append("prompt", input.prompt);
   form.append("first_frame_image", imageBlob, "first-frame.jpg");
@@ -44,8 +63,8 @@ export async function startDeapiGeneration(input: StartDeapiInput): Promise<Star
   form.append("height", "512");
   form.append("guidance", "7.5");
   form.append("steps", "1");
-  form.append("frames", "30");
-  form.append("fps", "30");
+  form.append("frames", String(frames));
+  form.append("fps", String(fps));
   form.append("seed", "42");
   form.append("model", "Ltxv_13B_0_9_8_Distilled_FP8");
 
